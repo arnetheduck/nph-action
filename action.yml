@@ -1,0 +1,65 @@
+name: "nph"
+description: "Nim code formatter."
+author: "Jacek Sieka"
+inputs:
+  options:
+    description:
+      "Options passed to `nph` - you can use this to control which folders to format (ie 'src/')"
+    required: false
+    default: "."
+  fail:
+    description: "Fail the build if formatting results in changes"
+    required: false
+    default: "true"
+  version:
+    description: '`nph` version - defaults to latest'
+    required: false
+    default: "latest"
+  suggest:
+    description: "Post suggestions to the PR with formatting updates (default: true)"
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: Download `nph`
+      if: inputs.version == 'latest'
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: "arnetheduck/nph"
+        fileName: '*-linux_x64.tar.gz'
+        latest: true
+        extract: true
+    - name: Download `nph`
+      if: inputs.version != 'latest'
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: "arnetheduck/nph"
+        fileName: '*-linux_x64.tar.gz'
+        tag: v${{inputs.version}}
+        extract: true
+
+    - name: nph
+      run: |
+        if [ "$RUNNER_OS" != "Linux" ]; then
+              echo "Only Linux runner supported"
+              exit 1
+        fi
+        ./nph ${{inputs.options}}
+      shell: bash
+
+    - name: Annotate diff changes using reviewdog
+      if: inputs.suggest && github.event_name == 'pull_request'
+      uses: reviewdog/action-suggester@v1
+      with:
+        tool_name: nph
+        cleanup: false
+
+    - name: View diff
+      run: |
+        if [ "${{ inputs.fail }}" == "true" ]; then
+          git diff --exit-code || exit 1
+        else
+          git diff
+        fi
+      shell: bash
