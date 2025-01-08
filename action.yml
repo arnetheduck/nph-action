@@ -1,4 +1,4 @@
-name: "nph"
+name: "nph-action"
 description: "Nim code formatter."
 author: "Jacek Sieka"
 inputs:
