@@ -50,7 +50,7 @@ runs:
 
     - name: Annotate diff changes using reviewdog
       if: inputs.suggest && github.event_name == 'pull_request'
-      uses: reviewdog/action-suggester@v1.22.0
+      uses: reviewdog/action-suggester@v1
       with:
         tool_name: nph
         cleanup: false
